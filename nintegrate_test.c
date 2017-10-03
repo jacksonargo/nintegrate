@@ -65,5 +65,5 @@ int main(int argc, char **argv) {
   actual = 0.890373044577735;
   calculated = nintegrate(&ln_sin_xpx, NULL, 1, 2);
   SHOW_RESULTS(actual, calculated);
-  exit(1);
+  exit(0);
 }
