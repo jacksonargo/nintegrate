@@ -39,31 +39,34 @@ double normdistribution(double x, void* param) {
   return coef*pow(E, exp);
 }
 
-int main(int argc, char **argv) {
-  double calculated, actual;
+double test_function(
+  double (*func)(double x, void* params),
+  void* params,
+  double x1,
+  double x2,
+  char* description,
+  double actual
+) {
+  double calculated;
 
-  // Test always1
-  printf("Testing f(x) = 1 for x in [0, 10]...\n");
-  actual = 10;
-  calculated = nintegrate(&always1, NULL, 0, 10);
+  printf("Testing %s\n\tfor x in [%e, %e]\n", description, x1, x2);
+  calculated = nintegrate(func, params, x1, x2);
   SHOW_RESULTS(actual, calculated);
+  return percent_error(actual, calculated);
+}
+
+int main(int argc, char **argv) {
+  // Test always1
+  test_function(&always1, NULL, 0, 10, "f(x) = 1", 10);
 
   // Test quadratic
-  printf("Testing f(x) = x^2 for x in [0, 10]...\n");
-  actual = 1.0/3*1000;
-  calculated = nintegrate(&quadratic, NULL, 0, 10);
-  SHOW_RESULTS(actual, calculated);
+  test_function(&quadratic, NULL, 0, 10, "f(x) = x^2", 1.0/3*1000);
 
   // Test sin2
-  printf("Testing f(x) = sin^2(x) for x in [0, pi]...\n");
-  actual = PI/2;
-  calculated = nintegrate(&sin2, NULL, 0, PI);
-  SHOW_RESULTS(actual, calculated);
+  test_function(&sin2, NULL, 0, PI, "f(x) = sin^2(x)", PI/2);
 
   // Test log(sin(x) + x)
-  printf("Testing f(x) = log(x+sin(x)) for x in [1, 2]\n");
-  actual = 0.890373044577735;
-  calculated = nintegrate(&ln_sin_xpx, NULL, 1, 2);
-  SHOW_RESULTS(actual, calculated);
+  test_function(&ln_sin_xpx, NULL, 1, 2, "f(x) = log(x+sin(x))", 0.890373044577735);
+
   exit(0);
 }
