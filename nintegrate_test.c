@@ -22,25 +22,36 @@
 
 #define BAD_ERROR_THRESHOLD 1e-10
 
+/* Store stats about the functions */
 struct stats_t {
   int n_calls;
   double pe;
+  double real_val;
+  double calc_val;
   struct rusage usage_pre;
   struct rusage usage_post;
 };
 
+/* Initialize a stats structure */
 struct stats_t* init_stats_t() {
   struct stats_t *stats = malloc(sizeof(struct stats_t));
+  stats->real_val = 0.0;
+  stats->calc_val = 0.0;
   stats->n_calls = 0;
   stats->pe = 0;
   getrusage(RUSAGE_SELF, &(stats->usage_pre));
   return stats;
 }
 
+/* Track function stats */
 void track_stats(void *params) {
   struct stats_t *f_stats = (struct stats_t*)(params);
   f_stats->n_calls++;
 }
+
+/*
+ * Functions to integrate
+ */
 
 double always1(double _x, void* params) {
   track_stats(params);
@@ -105,13 +116,14 @@ double track_percent_error(double error) {
   return total_error;
 }
 
-void show_results(struct stats_t *stats, double actual, double calculated) {
-  double pe = percent_error(actual, calculated);
+void show_results(struct stats_t *stats) {
+  double actual = stats->real_val;
+  double calculated = stats->calc_val;
+  double pe = stats->pe;
   struct rusage usage_pre = stats->usage_pre;
   struct rusage usage_post = stats->usage_post;
   int utime = usage_post.ru_utime.tv_usec - usage_pre.ru_utime.tv_usec;
 
-  stats->pe = pe;
 
   printf("Actual: %.*e\n", DBL_DIG, actual);
   printf("Calced: %.*e\n", DBL_DIG, calculated);
@@ -131,22 +143,25 @@ void test_function(
   char* description,
   double actual
 ) {
-  int x, recursions[] = {0, 1024, -1};
+  int x, recursions[] = {0, 1, 1024, -1};
   int n_r = sizeof(recursions)/sizeof(int);
-  double calculated;
   struct stats_t *stats;
 
-  printf("Testing %s\n\tfor x in [%e, %e]\n\n", description, x1, x2);
+  printf("##########\n");
+  printf("Testing %s,\n\tfor x in [%e, %e]\n", description, x1, x2);
+  printf("##########\n\n");
 
   for(x = 0; x < n_r; x++) {
     if(recursions[x] == -1)
       printf("Recurse until complete...\n\n");
     else
-      printf("Limit %d recursions...\n\n", recursions[x]);
+      printf("Limit %d %s...\n\n", recursions[x], (recursions[x] == 1) ? "recursion" : "recursions");
     stats = init_stats_t();
-    calculated = nintegrate_r(func, stats, x1, x2, recursions[x]);
+    stats->real_val = actual;
+    stats->calc_val = nintegrate_r(func, stats, x1, x2, recursions[x]);
+    stats->pe = percent_error(stats->real_val, stats->calc_val);
     getrusage(RUSAGE_SELF, &(stats->usage_post));
-    show_results(stats, actual, calculated);
+    show_results(stats);
     if(recursions[x] == -1)
       track_percent_error(stats->pe);
     free(stats);
@@ -184,6 +199,7 @@ int main(int argc, char **argv) {
 
   printf("System constants:\n");
   printf("Machine epsilon: %.*e\n\n", DBL_DIG, DBL_EPSILON);
+
   // Test always1
   test_function(&always1, 0, 10, "f(x) = 1", 10);
 
