@@ -13,9 +13,9 @@ typedef struct __quadrature_weights quadrature_weights;
 struct __quadrature_weights {
     int n_gauss;      ///< Number of gauss weights.
     int n_kronrod;    ///< Number of kronrod weights.
-    double *node;     ///< Array of nodes to evaluate at.
-    double *gauss;    ///< Array of gauss weights.
-    double *kronrod;  ///< Array of kronrod weights.
+    const double *node;     ///< Array of nodes to evaluate at.
+    const double *gauss;    ///< Array of gauss weights.
+    const double *kronrod;  ///< Array of kronrod weights.
 };
 
 /** nintegrate_r()
