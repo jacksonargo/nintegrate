@@ -190,13 +190,9 @@ void sigint_handler(int sig) {
 }
 
 int main(int argc, char **argv) {
-  clock_t start = clock(); // Make this the first operation.
-  double total_error;
-
   signal(SIGINT, sigint_handler);
 
   printf("Running tests...\n");
-
   printf("System constants:\n");
   printf("Machine epsilon: %.*e\n\n", DBL_DIG, DBL_EPSILON);
 
