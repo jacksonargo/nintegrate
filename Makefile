@@ -1,4 +1,9 @@
-default: build test
+CC=/usr/bin/gcc
+INCLUDE=include
+CFILES=src/*.c
+CFLAGS=-Wall -I${INCLUDE}
+
+default: test
 
 test: build_test run_test
 
@@ -7,11 +12,12 @@ echo:
 
 build:
 	mkdir -p lib
-	gcc -Wall -c src/nintegrate.c -Iinclude/ -o lib/nintegrate.o
+	${CC} ${CFLAGS} -c ${CFILES}
+	mv *.o lib
 
 build_test: build
 	mkdir -p bin
-	gcc -Wall -lm test/src/nintegrate_test.c lib/* -Iinclude -o bin/nintegrate_test
+	${CC} ${CFLAGS} -lm test/src/nintegrate_test.c lib/*.o -Iinclude -o bin/nintegrate_test
 
 run_test: build_test
 	bin/nintegrate_test
